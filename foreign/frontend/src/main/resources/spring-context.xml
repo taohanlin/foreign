@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.1.xsd">
+
+	<!-- 自动扫描包下的注解 -->
+	<context:component-scan base-package="com.foreign" />
+	
+	<!-- 数据绑定,转换支持 -->
+	<mvc:annotation-driven>
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes">
+                     <list>
+                        <value>text/html;charset=UTF-8</value>
+                        <value>application/json</value>
+                        <value>text/javascript;charset=utf-8</value>
+                      </list>
+            	 </property>
+            	 <property name="writeAcceptCharset" value="false"/>
+			</bean>
+			<bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+	
+	<!-- 织入aspectj切面 -->
+	<aop:aspectj-autoproxy />
+	
+	<!--织入定时任务 -->
+	<task:annotation-driven />
+	
+	<!--将一些组态设定，移出至.properties归档中 -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:properties/config.properties</value>
+				<value>classpath:properties/jdbc.properties</value>
+				<value>classpath:properties/redis.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- 导入mybatis,redis,cache,mq 配置 -->
+	<import resource="classpath:spring-jdbc.xml" />
+	<import resource="classpath:spring-redis.xml" />
+
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/verify/**" />
+			<mvc:mapping path="/login/**" />
+			<mvc:mapping path="/register/**" />
+			<mvc:mapping path="/phone/password/**" />
+			<bean class="com.foreign.frontend.common.interceptor.CipherRequiredInterceptor" />
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/verify/**" />
+			<bean class="com.foreign.frontend.common.interceptor.DuplicateRequestInterceptor" />
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<mvc:exclude-mapping path="/api/wdzj/listBorrow" />
+			<mvc:exclude-mapping path="/web/**" />
+			<mvc:exclude-mapping path="/thirdparty/**" />
+			<mvc:exclude-mapping path="/system/**" />
+			<mvc:exclude-mapping path="/css/**" />
+			<mvc:exclude-mapping path="/image/**" />
+			<mvc:exclude-mapping path="/js/**" />
+			<mvc:exclude-mapping path="/html/**" />
+			<mvc:exclude-mapping path="/lib/**" />
+			<mvc:exclude-mapping path="/login/**" />
+			<mvc:exclude-mapping path="/register/**" />
+			<mvc:exclude-mapping path="/verify/**" />
+			<mvc:exclude-mapping path="/phone/password/retrieve/**" />
+			<mvc:exclude-mapping path="/version/**" />
+			<mvc:exclude-mapping path="/antifraud/**" />
+			<mvc:exclude-mapping path="/banner/**" />
+			<bean class="com.foreign.frontend.common.interceptor.LoginInterceptor" />
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+	<!-- 异常处理 -->
+	<bean class="com.foreign.frontend.common.exception.ServerExceptionHandler" />
+
+	<!-- 静态资源的访问 -->
+	<mvc:resources location="/resources/css/" mapping="/css/**" />
+	<mvc:resources location="/resources/image/" mapping="/image/**" />
+	<mvc:resources location="/resources/js/" mapping="/js/**" />
+	<mvc:resources location="/resources/html/" mapping="/html/**" />
+	<mvc:resources location="/resources/lib/" mapping="/lib/**" />
+
+	<!-- 只能支持解析可由Servlet API的RequestDispatcher转发的视图资源图，如：内部jsp或者servlet。 -->
+	<!-- 决定视图类型，如果添加了jstl支持（即有jstl.jar），那么默认就是解析为jstl视图 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!-- 视图前缀 -->
+		<property name="prefix" value="/WEB-INF/views/" />
+		<!-- 视图后缀 -->
+		<property name="suffix" value=".jsp" />
+	</bean>
+</beans>

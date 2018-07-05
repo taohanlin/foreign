@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foreign.business.bean.OrderInvest">
+	
+	<select id="getWdzjInvesterInfos" resultType="com.foreign.business.bean.result.WdzjOrderInvestResult">
+		SELECT
+			o.user_code AS userCode,
+			o.invest_amount_actual AS investAmountActual,
+			o.create_time AS createTime
+		FROM
+			order_invest o
+		WHERE
+			borrow_no = #{borrowNo}
+		AND 
+			o.freez_trx_id IS NOT NULL
+		AND 
+			o.unfreeze_order_id IS NOT NULL
+	</select>
+</mapper>

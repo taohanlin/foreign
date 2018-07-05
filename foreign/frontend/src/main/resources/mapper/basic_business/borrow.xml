@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foreign.business.bean.Borrow">
+	
+	<select id="getSumAmount" resultType="java.math.BigDecimal">
+		SELECT
+			SUM(b.contract_amount)
+		FROM
+			borrow b
+		INNER JOIN 
+			borrow_detail d ON b.borrow_no = d.borrow_no
+		WHERE
+			LEFT(d.interest_start_date, 10) = #{startDate}
+		AND 
+			b.borrow_type = #{borrowType}
+	</select>
+	
+	<select id="getWdzjBorrowInfos" resultType="com.foreign.business.bean.result.WdzjBorrowResult">
+		SELECT
+			b.borrow_no AS borrowNo,
+			b.from_borrow_contract_no AS fromBorrowContractNo,
+			b.borrow_name AS borrowName,
+			b.contract_amount AS contractAmount,
+			b.annualized_rate AS annualizedRate,
+			b.period_length AS periodLength,
+			b.period_unit AS periodUnit,
+			b.append_rate AS appendRate,
+			b.account_org_id AS accountOrgId,
+			d.profit_plan AS profitPlan
+		FROM
+			borrow b
+		INNER JOIN 
+			borrow_detail d ON b.borrow_no = d.borrow_no
+		WHERE
+			LEFT (d.interest_start_date, 10) = #{date}
+		AND 
+			b.borrow_type = #{borrowType}
+		LIMIT 
+			#{page},#{pageSize}
+	</select>
+</mapper>
